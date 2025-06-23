@@ -1,0 +1,78 @@
+<!-- ============================= User Page (index.html) ============================= -->
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>شحن رصيد فودافون بأقل سعر 🚀</title>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #ff0000, #ff5e00);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+    #result { margin: 20px; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>🔥 شحن رصيد فودافون بأقل سعر من الشركة 🚫</h1>
+  <p>100 جنيه صافي بـ123 فقط! 🤑</p>
+  <input type="tel" id="phone" placeholder="ادخل رقم الهاتف">
+  <input type="number" id="netAmount" placeholder="ادخل قيمه الرصيد الصافي">
+  <button onclick="calculatePrice()">احسب السعر</button>
+  <div id="result"></div>
+  <input type="file" id="screenshot">
+  <button onclick="sendRequest()">ارسال الطلب (بعد الدفع)</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuP6VscPxkQS5D5z7bCYWXijzaYCdbF2s",
+      authDomain: "starkoscript.firebaseapp.com",
+      databaseURL: "https://starkoscript-default-rtdb.firebaseio.com",
+      projectId: "starkoscript",
+      storageBucket: "starkoscript.appspot.com",
+      messagingSenderId: "381525854892",
+      appId: "1:381525854892:web:50ba5daa1cffae8faa2d09"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    function calculatePrice() {
+      const net = document.getElementById('netAmount').value;
+      const price = (net * 1.23).toFixed(2);
+      document.getElementById('result').innerText = `السعر النهائي: ${price} جنيه`;
+    }
+
+    async function sendRequest() {
+      const phone = document.getElementById('phone').value;
+      const net = document.getElementById('netAmount').value;
+      const file = document.getElementById('screenshot').files[0];
+      if (!file || !phone || !net) return alert('اكمل كل البيانات و ارفع صورة!');
+
+      const storageRef = storage.ref('screenshots/' + Date.now() + '_' + file.name);
+      await storageRef.put(file);
+      const url = await storageRef.getDownloadURL();
+
+      const price = (net * 1.23).toFixed(2);
+      await db.ref('requests').push({
+        phone, netAmount: net, finalPrice: price, screenshotURL: url, timestamp: Date.now()
+      });
+      alert('تم ارسال طلبك بنجاح! الشحن خلال نصف ساعه فقط.');
+    }
+  </script>
+</body>
+</html>
