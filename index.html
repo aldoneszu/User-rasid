@@ -1,3 +1,4 @@
+<!-- ============================= User Page (index.html) ============================= -->
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -60,20 +61,37 @@
     }
 
     async function sendRequest() {
+      console.log('SendRequest Called');
       const phone = document.getElementById('phone').value;
       const net = document.getElementById('netAmount').value;
       const file = document.getElementById('screenshot').files[0];
-      if (!file || !phone || !net) return alert('اكمل كل البيانات و ارفع صورة!');
+
+      if (!file || !phone || !net) {
+        alert('اكمل كل البيانات و ارفع صورة!');
+        console.log('Missing data:', { phone, net, file });
+        return;
+      }
 
       const storageRef = storage.ref('screenshots/' + Date.now() + '_' + file.name);
-      await storageRef.put(file);
-      const url = await storageRef.getDownloadURL();
+      try {
+        const snapshot = await storageRef.put(file);
+        console.log('File uploaded');
+        const url = await snapshot.ref.getDownloadURL();
+        console.log('URL:', url);
 
-      const price = (net * 1.23).toFixed(2);
-      await db.ref('requests').push({
-        phone, netAmount: net, finalPrice: price, screenshotURL: url, timestamp: Date.now()
-      });
-      alert('تم ارسال طلبك بنجاح! الشحن خلال نصف ساعه فقط.');
+        const price = (net * 1.23).toFixed(2);
+        await db.ref('requests').push({
+          phone,
+          netAmount: net,
+          finalPrice: price,
+          screenshotURL: url,
+          timestamp: Date.now()
+        });
+        alert('تم ارسال طلبك بنجاح! الشحن خلال نصف ساعه فقط.');
+      } catch(err) {
+        console.error('Error:', err);
+        alert('حدث خطأ أثناء رفع الصورة أو حفظ الطلب');
+      }
     }
   </script>
 </body>
